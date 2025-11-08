@@ -1,0 +1,135 @@
+[
+  {
+    "ts": "2025-11-08 01:44:30",
+    "status": "admin_login_ok",
+    "user_name": "admin",
+    "score": null,
+    "note": null
+  },
+  {
+    "ts": "2025-11-08 01:44:39",
+    "status": "enroll_ok",
+    "user_name": "Guilherme Silva dos Santos",
+    "score": null,
+    "note": "level 3"
+  },
+  {
+    "ts": "2025-11-08 01:44:48",
+    "status": "auth_failed",
+    "user_name": null,
+    "score": 79.68425818044071,
+    "note": "Confiança acima do threshold"
+  },
+  {
+    "ts": "2025-11-08 01:44:49",
+    "status": "auth_failed",
+    "user_name": null,
+    "score": 76.36569368890972,
+    "note": "Confiança acima do threshold"
+  },
+  {
+    "ts": "2025-11-08 01:44:53",
+    "status": "auth_ok",
+    "user_name": "Guilherme Silva dos Santos",
+    "score": 50.649714259135315,
+    "note": "Nível 3 (Ministro)"
+  },
+  {
+    "ts": "2025-11-08 01:45:07",
+    "status": "enroll_gate_face",
+    "user_name": "Guilherme Silva dos Santos",
+    "score": 64.70942934977916,
+    "note": "Nível 3 (Ministro)"
+  },
+  {
+    "ts": "2025-11-08 01:46:29",
+    "status": "enroll_ok",
+    "user_name": "CLAU FOGUEETE",
+    "score": null,
+    "note": "level 1"
+  },
+  {
+    "ts": "2025-11-08 01:46:35",
+    "status": "auth_ok",
+    "user_name": "Guilherme Silva dos Santos",
+    "score": 67.48158831128615,
+    "note": "Nível 3 (Ministro)"
+  },
+  {
+    "ts": "2025-11-08 01:46:47",
+    "status": "auth_ok",
+    "user_name": "CLAU FOGUEETE",
+    "score": 64.34994483333169,
+    "note": "Nível 1 (Geral)"
+  },
+  {
+    "ts": "2025-11-08 01:46:54",
+    "status": "auth_failed",
+    "user_name": null,
+    "score": 70.35403574726725,
+    "note": "Confiança acima do threshold"
+  },
+  {
+    "ts": "2025-11-08 01:46:55",
+    "status": "auth_ok",
+    "user_name": "Guilherme Silva dos Santos",
+    "score": 67.32344124453554,
+    "note": "Nível 3 (Ministro)"
+  },
+  {
+    "ts": "2025-11-08 01:47:12",
+    "status": "auth_ok",
+    "user_name": "CLAU FOGUEETE",
+    "score": 67.32769323313882,
+    "note": "Nível 1 (Geral)"
+  },
+  {
+    "ts": "2025-11-08 01:47:19",
+    "status": "auth_ok",
+    "user_name": "Guilherme Silva dos Santos",
+    "score": 56.81619860295859,
+    "note": "Nível 3 (Ministro)"
+  },
+  {
+    "ts": "2025-11-08 01:48:50",
+    "status": "enroll_gate_face",
+    "user_name": "Guilherme Silva dos Santos",
+    "score": 51.29158974315821,
+    "note": "Nível 3 (Ministro)"
+  },
+  {
+    "ts": "2025-11-08 01:48:55",
+    "status": "enroll_update_level",
+    "user_name": "Guilherme Silva dos Santos",
+    "score": null,
+    "note": "novo nível 2; updated=True"
+  },
+  {
+    "ts": "2025-11-08 01:49:00",
+    "status": "auth_ok",
+    "user_name": "Guilherme Silva dos Santos",
+    "score": 43.823353694596044,
+    "note": "Nível 2 (Diretoria)"
+  },
+  {
+    "ts": "2025-11-08 01:49:10",
+    "status": "enroll_gate_face",
+    "user_name": "Guilherme Silva dos Santos",
+    "score": 37.54575518107214,
+    "note": "Nível 2 (Diretoria)"
+  },
+  {
+    "ts": "2025-11-08 01:49:11",
+    "status": "enroll_gate_face",
+    "user_name": "Guilherme Silva dos Santos",
+    "score": 42.0891250958366,
+    "note": "Nível 2 (Diretoria)"
+  },
+  {
+    "ts": "2025-11-08 01:57:04",
+    "status": "auth_ok",
+    "user_name": "Guilherme Silva dos Santos",
+    "score": 45.95589139582468,
+    "note": "Nível 2 (Diretoria)"
+  }
+]

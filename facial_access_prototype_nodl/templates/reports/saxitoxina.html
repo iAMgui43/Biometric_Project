@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ doc.titulo }} • Relatório Detalhado</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Roboto+Mono:wght@400;600&display=swap" rel="stylesheet" />
+    {% raw %}
+    <style>
+        /* Variáveis CSS */
+        :root {
+            --bg: #0f172a; /* Fundo escuro principal */
+            --panel: #111827; /* Fundo dos cards (ligeiramente mais escuro que o bg) */
+            --ink: #e5e7eb; /* Cor do texto principal (branco off-white) */
+            --muted: #9ca3af; /* Cor do texto secundário/rótulos (cinza) */
+            --blue: #0ea5e9; /* Azul para links/destaques */
+            --green: #22c55e; /* Verde para sucesso/positivos */
+            --amber: #f59e0b; /* Âmbar para alertas/médios */
+            --red: #ef4444; /* Vermelho para riscos/erros */
+            --br: #1f2937; /* Cor da borda dos cards */
+            --mono: 'Roboto Mono', monospace; /* Fonte monoespaçada para valores */
+            --sans: 'Inter', sans-serif; /* Fonte principal */
+            --gradient-start: #0b1220;
+            --gradient-end: var(--bg);
+        }
+
+        /* Reset Básico */
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            background: linear-gradient(180deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+            color: var(--ink);
+            font-family: var(--sans);
+            line-height: 1.6;
+            min-height: 100vh; /* Garante que o gradiente preencha a tela toda */
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Layout Principal */
+        .wrap {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 20px;
+            flex-grow: 1; /* Permite que o wrapper se expanda */
+        }
+
+        /* Cabeçalho do Relatório */
+        .h {
+            display: flex;
+            align-items: center;
+            gap: 15px; /* Aumentado o espaço entre logo e título */
+            margin-bottom: 30px; /* Mais espaçamento abaixo do cabeçalho */
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--br); /* Separador visual sutil */
+        }
+        .h img {
+            height: 45px; /* Aumentado o tamanho do logo */
+            border-radius: 8px; /* Borda mais suave para o logo */
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); /* Sombra para o logo */
+        }
+        .h h1 {
+            margin: 0;
+            font-size: 1.8rem; /* Título maior e mais impactante */
+            font-weight: 700;
+            color: var(--blue); /* Destaque azul para o título */
+            letter-spacing: -0.5px; /* Ajuste para melhor leitura */
+        }
+
+        /* Estilo dos Cards de Informação */
+        .card {
+            background: var(--panel); /* Fundo dos cards */
+            border: 1px solid var(--br);
+            border-radius: 12px;
+            padding: 25px; /* Aumentado o padding para mais "ar" */
+            margin: 20px 0; /* Aumentado a margem entre cards */
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25); /* Sombra mais pronunciada */
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; /* Animação suave */
+        }
+        .card:hover {
+            transform: translateY(-3px); /* Leve elevação ao passar o mouse */
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.35); /* Sombra mais intensa no hover */
+        }
+        .card h3 {
+            margin-top: 0;
+            margin-bottom: 20px; /* Mais espaço abaixo do subtítulo */
+            font-size: 1.4rem; /* Subtítulo maior */
+            font-weight: 600;
+            color: var(--ink);
+            border-bottom: 1px dashed var(--br); /* Separador interno nos cards */
+            padding-bottom: 10px;
+            letter-spacing: -0.2px;
+        }
+
+        /* Rótulos e Valores (Chave-Valor) */
+        .info-block {
+            margin-bottom: 20px; /* Espaço entre cada bloco de informação */
+        }
+        .k {
+            color: var(--muted);
+            font-size: 0.88rem; /* Rótulo um pouco maior */
+            font-weight: 500;
+            text-transform: uppercase; /* Rótulos em maiúsculas para clareza */
+            margin-bottom: 6px; /* Espaço entre rótulo e valor */
+            display: block;
+        }
+        .v {
+            font-family: var(--mono);
+            font-size: 1rem; /* Valor um pouco maior */
+            color: var(--ink);
+            line-height: 1.5;
+            display: block;
+        }
+
+        /* Estilo para Parágrafos */
+        .card p {
+            font-size: 0.98rem;
+            line-height: 1.7;
+            margin-bottom: 15px;
+            color: var(--ink); /* Garante a cor do texto */
+        }
+
+        /* Estilo para Listas (Resultados, Recomendações, Referências) */
+        .card ul {
+            list-style: disc; /* Marcadores de disco padrão */
+            margin-left: 25px; /* Mais indentação para as listas */
+            padding: 0;
+            margin-top: 10px;
+        }
+        .card li {
+            margin-bottom: 10px; /* Espaço entre itens da lista */
+            font-size: 0.95rem;
+            color: var(--ink);
+        }
+
+        /* Destaque de Risco */
+        .risk-high { color: var(--red); font-weight: 700; } /* Mais forte */
+        .risk-medium { color: var(--amber); font-weight: 700; } /* Mais forte */
+        .risk-low { color: var(--green); font-weight: 700; } /* Mais forte */
+
+        /* Links */
+        a {
+            color: var(--blue);
+            text-decoration: none;
+            transition: color 0.2s ease, text-decoration 0.2s ease;
+        }
+        a:hover {
+            color: #42b2f0; /* Um tom mais claro de azul no hover */
+            text-decoration: underline;
+        }
+
+        /* Responsividade Básica (Opcional, mas boa prática) */
+        @media (max-width: 768px) {
+            .h h1 {
+                font-size: 1.4rem;
+            }
+            .card {
+                padding: 18px;
+            }
+            .card h3 {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+    {% endraw %}
+</head>
+<body>
+    <div class="wrap">
+        <div class="h">
+            <img src="{{ url_for('static', filename='brand/mma.png') }}" alt="MMA Logo">
+            <h1>{{ doc.titulo }} • Relatório Detalhado</h1>
+        </div>
+
+        <div class="card">
+            <h3>Visão Geral do Objeto de Pesquisa</h3>
+            <div class="info-block">
+                <span class="k">Categoria</span>
+                <span class="v">{{ doc.categoria | default('Não informado') }}</span>
+            </div>
+            <div class="info-block">
+                <span class="k">Origem</span>
+                <span class="v">{{ doc.origem | default('Não informado') }}</span>
+            </div>
+            <div class="info-block">
+                <span class="k">Risco Geral Avaliado</span>
+                <span class="v {% if 'ALTO' in doc.risco.upper() %}risk-high{% elif 'MÉDIO' in doc.risco.upper() %}risk-medium{% elif 'BAIXO' in doc.risco.upper() %}risk-low{% endif %}">
+                    {{ doc.risco | default('N/A - Risco não classificado') }}
+                </span>
+            </div>
+            <div class="info-block">
+                <span class="k">Aplicação Potencial / Uso em Pesquisa</span>
+                <span class="v">{{ doc.aplicacao | default('Nenhuma aplicação conhecida.') }}</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Detalhes Administrativos da Pesquisa</h3>
+            <div class="info-block">
+                <span class="k">Autor/Pesquisador Líder</span>
+                <span class="v">{{ doc.autor_lider | default('Não informado') }}</span>
+            </div>
+            <div class="info-block">
+                <span class="k">Data de Publicação / Última Revisão</span>
+                <span class="v">{{ doc.data_publicacao | default('Não informada') }}</span>
+            </div>
+            <div class="info-block">
+                <span class="k">Resumo Executivo</span>
+                <p>{{ doc.summary | default('N/A - Resumo executivo não disponível.') }}</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Metodologia e Resultados Encontrados</h3>
+            <div class="info-block">
+                <span class="k">Metodologia Empregada</span>
+                <p>{{ doc.metodologia | default('N/A - Detalhes da metodologia não disponíveis.') }}</p>
+            </div>
+            <div class="info-block">
+                <span class="k">Resultados Principais</span>
+                {% if doc.resultados_principais %}
+                    <ul>
+                        {% for resultado in doc.resultados_principais %}
+                            <li>{{ resultado }}</li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>N/A - Nenhum resultado principal detalhado.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Conclusões e Recomendações</h3>
+            <div class="info-block">
+                <span class="k">Conclusões da Pesquisa</span>
+                <p>{{ doc.conclusoes | default('N/A - Conclusões não detalhadas.') }}</p>
+            </div>
+            <div class="info-block">
+                <span class="k">Recomendações Futuras</span>
+                {% if doc.recomendacoes %}
+                    <ul>
+                        {% for recomendacao in doc.recomendacoes %}
+                            <li>{{ recomendacao }}</li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>N/A - Nenhuma recomendação específica.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Referências e Documentação</h3>
+            <div class="info-block">
+                <span class="k">Referências Citadas</span>
+                {% if doc.referencias %}
+                    <ul>
+                        {% for ref in doc.referencias %}
+                            <li><a href="{{ ref.link }}" target="_blank" rel="noopener noreferrer">{{ ref.titulo }}</a></li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>N/A - Nenhuma referência citada.</p>
+                {% endif %}
+            </div>
+            {% if doc.report %}
+            <div class="info-block">
+                <span class="k">Documento Completo (PDF)</span>
+                <p><a href="{{ url_for('static', filename=doc.report) }}" target="_blank" rel="noopener noreferrer">Baixar Relatório Completo (PDF)</a></p>
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+</body>
+</html>

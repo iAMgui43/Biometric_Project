@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{ doc.titulo }} • Relatório</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Roboto+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  {% raw %}
+  <style>
+    :root { --bg:#0f172a; --panel:#111827; --ink:#e5e7eb; --muted:#9ca3af; --blue:#0ea5e9; --green:#22c55e; --amber:#f59e0b; --red:#ef4444; --br:#1f2937; --mono:'Roboto Mono', monospace; --sans:'Inter', sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin:0; background:linear-gradient(180deg,#0b1220 0%,#0f172a 100%); color:var(--ink); font-family:var(--sans); }
+    .wrap { max-width: 960px; margin: 0 auto; padding: 20px; }
+    .h { display:flex; align-items:center; gap:12px; margin-bottom: 16px; }
+    .h img { height:36px; border-radius:6px; }
+    .h h1 { margin:0; font-size:1.2rem; font-weight:700; }
+    .card { background:#0f1b2f; border:1px solid var(--br); border-radius:12px; padding:16px; margin:12px 0; }
+    .k { color:var(--muted); font-size:.9rem; }
+    .v { font-family: var(--mono); }
+  </style>
+  {% endraw %}
+</head>
+<body>
+  <div class="wrap">
+    <div class="h">
+      <img src="{{ url_for('static', filename='brand/mma.png') }}" alt="MMA">
+      <h1>{{ doc.titulo }} • Relatório</h1>
+    </div>
+
+    <div class="card"><div class="k">Categoria</div><div class="v">{{ doc.categoria }}</div></div>
+    <div class="card"><div class="k">Origem</div><div class="v">{{ doc.origem }}</div></div>
+    <div class="card"><div class="k">Risco</div><div class="v">{{ doc.risco }}</div></div>
+    <div class="card"><div class="k">Aplicação</div><div class="v">{{ doc.aplicacao }}</div></div>
+    <div class="card"><div class="k">Resumo</div><div>{{ doc.summary }}</div></div>
+  </div>
+</body>
+</html>

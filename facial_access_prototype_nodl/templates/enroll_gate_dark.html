@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gate de Cadastro • BioSafe</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg-primary:#1a1a2e;--bg-secondary:#16213e;--card-bg:#0f3460;--text-color-light:#e0e0e0;--text-color-medium:#b00b0b;--accent-green:#00e676;--accent-blue:#00b0ff;--border-color:#0d284a;--shadow-color:rgba(0,0,0,.4);--font-sans:'Inter',sans-serif}
+*{box-sizing:border-box}body{font-family:var(--font-sans);background:var(--bg-primary);color:var(--text-color-light);margin:0;padding:30px;min-height:100vh;display:flex;justify-content:center;align-items:flex-start}
+.container{width:100%;max-width:980px;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;box-shadow:0 15px 30px var(--shadow-color);overflow:hidden}
+.header{background:rgba(15,52,96,.6);padding:25px 40px;border-bottom:1px solid var(--border-color);display:flex;justify-content:space-between;align-items:center}
+.grid{display:grid;grid-template-columns:1fr;gap:20px;padding:24px}@media(min-width:900px){.grid{grid-template-columns:1fr 1fr}}
+.card{background:var(--card-bg);border:1px solid var(--border-color);border-radius:12px;padding:18px;position:relative}
+.video{width:100%;border-radius:12px;background:#000}
+#overlay{position:absolute;left:18px;top:18px;pointer-events:none}
+.btn{display:inline-block;background:var(--accent-blue);color:#001018;text-decoration:none;padding:10px 14px;border-radius:10px;font-weight:600}
+.btn:hover{filter:brightness(1.12)}
+label{display:block;margin:10px 0 6px;color:#b0d4ff}
+input{width:100%;padding:10px;border-radius:10px;border:1px solid var(--border-color);background:#0b2a4f;color:#e0e0e0}
+.msg{margin-top:10px;color:#9bb7ff}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>Cadastro • Somente Nível 3 ou Admin</h1>
+    <a href="/" class="btn" style="background:#00e676;color:#00331f">← Início</a>
+  </div>
+  <div class="grid">
+    <div class="card">
+      <h2>Validar rosto (N3)</h2>
+      <video id="video" autoplay playsinline class="video"></video>
+      <canvas id="overlay"></canvas>
+      <div style="margin-top:10px">
+        <button id="btn-face" class="btn">Verificar Nível 3</button>
+        <span id="status" class="msg"></span>
+      </div>
+      <canvas id="canvas" style="display:none"></canvas>
+    </div>
+    <div class="card">
+      <h2>Ou autenticar como Admin</h2>
+      <label>Usuário</label>
+      <input id="adminUser" placeholder="admin">
+      <label>Senha</label>
+      <input id="adminPass" type="password" placeholder="0000">
+      <button id="btn-admin" class="btn" style="margin-top:10px">Entrar como Admin</button>
+      <div id="msg" class="msg"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const video=document.getElementById('video');
+const overlay=document.getElementById('overlay');
+const canvas=document.getElementById('canvas');
+const btnFace=document.getElementById('btn-face');
+const statusEl=document.getElementById('status');
+const btnAdmin=document.getElementById('btn-admin');
+const msg=document.getElementById('msg');
+
+async function initCam(){
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({video:{width:640,height:480}});
+    video.srcObject=stream; await video.play();
+    await new Promise(res=>{ if(video.readyState>=2) return res(); video.onloadeddata=()=>res(); });
+    overlay.width=video.clientWidth; overlay.height=video.clientHeight;
+    drawGuide();
+  }catch(e){ statusEl.textContent="Erro ao acessar a câmera: "+e.message; }
+}
+function drawGuide(){
+  const ctx=overlay.getContext('2d'); ctx.clearRect(0,0,overlay.width,overlay.height);
+  const gw=Math.floor(overlay.width*0.45), gh=Math.floor(overlay.height*0.6);
+  const gx=Math.floor((overlay.width-gw)/2), gy=Math.floor((overlay.height-gh)/2);
+  ctx.strokeStyle='#00e676'; ctx.lineWidth=3; ctx.globalAlpha=0.5; ctx.strokeRect(gx,gy,gw,gh); ctx.globalAlpha=1;
+}
+function drawDetected(b){
+  if(!b) return; const [x,y,w,h]=b;
+  const vw=video.videoWidth||640, vh=video.videoHeight||480;
+  const sx=overlay.width/vw, sy=overlay.height/vh;
+  const ctx=overlay.getContext('2d'); drawGuide();
+  ctx.strokeStyle='#00ff88'; ctx.lineWidth=4; ctx.globalAlpha=0.9;
+  ctx.strokeRect(x*sx,y*sy,w*sx,h*sy); ctx.globalAlpha=1;
+}
+async function fetchWithTimeout(url,options={},ms=15000){
+  const c=new AbortController(), t=setTimeout(()=>c.abort(),ms);
+  try{ return await fetch(url,{...options,signal:c.signal,credentials:'same-origin'}); } finally { clearTimeout(t); }
+}
+btnFace.onclick = async ()=>{
+  canvas.width=video.videoWidth||640; canvas.height=video.videoHeight||480;
+  const ctx=canvas.getContext('2d'); ctx.drawImage(video,0,0,canvas.width,canvas.height);
+  const dataURL=canvas.toDataURL('image/jpeg',0.9);
+  statusEl.textContent="Verificando rosto...";
+  try{
+    const r=await fetchWithTimeout('/api/verify_enroll',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image_b64:dataURL})});
+    const j=await r.json(); statusEl.textContent=""; drawDetected(j.bbox);
+    if(j.ok && j.match && j.is_n3){
+      window.location.href = j.redirect || '/enroll';
+    }else{
+      msg.textContent = 'Acesso via rosto não liberado. Use usuário e senha de Admin.';
+    }
+  }catch(e){ statusEl.textContent="Falha na verificação." }
+};
+btnAdmin.onclick = async ()=>{
+  const user=document.getElementById('adminUser').value.trim();
+  const pw=document.getElementById('adminPass').value.trim();
+  msg.textContent="Validando credenciais...";
+  try{
+    const r=await fetch('/admin-login',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({user, password:pw})});
+    const j=await r.json();
+    if(j.ok){ window.location.href=j.redirect || '/enroll'; }
+    else{ msg.textContent=j.error||'Falha no login.'; }
+  }catch(e){ msg.textContent='Erro na rede.'; }
+};
+initCam();
+</script>
+</body>
+</html>

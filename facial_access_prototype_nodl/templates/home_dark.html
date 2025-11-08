@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Home • {{ level_label }}</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg-primary:#1a1a2e;--bg-secondary:#16213e;--card-bg:#0f3460;--text-color-light:#e0e0e0;--text-color-medium:#b0b0b0;--accent-green:#00e676;--accent-blue:#00b0ff;--border-color:#0d284a;--shadow-color:rgba(0,0,0,.4);--font-sans:'Inter',sans-serif}
+*{box-sizing:border-box}body{font-family:var(--font-sans);background:var(--bg-primary);color:var(--text-color-light);margin:0;padding:30px;min-height:100vh;display:flex;justify-content:center;align-items:flex-start}
+.container{width:100%;max-width:950px;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;box-shadow:0 15px 30px var(--shadow-color);overflow:hidden}
+.header{background:rgba(15,52,96,.6);padding:25px 40px;border-bottom:1px solid var(--border-color);display:flex;justify-content:space-between;align-items:center}
+.card{background:var(--card-bg);border:1px solid var(--border-color);border-radius:12px;padding:24px;margin:24px}
+.btn{display:inline-block;background:var(--accent-blue);color:#001018;text-decoration:none;padding:10px 14px;border-radius:10px;font-weight:600}
+.btn:hover{filter:brightness(1.15)}
+.badge{display:inline-block;background:#003b5c;color:#9cd6ff;border:1px solid #0d4e7a;border-radius:999px;padding:5px 10px;font-size:.85em;margin-left:10px}
+.list{margin:0;padding-left:18px;color:var(--text-color-medium)}
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>BioSafe • Ministério do Meio Ambiente</h1>
+      <div>
+        <span class="badge">{{ level_label }}</span>
+        <a href="/" class="btn" style="background:#00e676;color:#00331f;margin-left:10px">Sair</a>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Bem-vindo{% if name %} {{ name }}{% endif %}!</h2>
+      <p>Área pós-login com conteúdo conforme seu nível de acesso.</p>
+      {% if level == 1 %}
+        <h3>Visão Nível 1</h3>
+        <ul class="list">
+          <li>Notícias institucionais e comunicados gerais.</li>
+          <li>Políticas públicas ambientais (públicas).</li>
+          <li>Indicadores resumidos sem dados sensíveis.</li>
+        </ul>
+      {% elif level == 2 %}
+        <h3>Visão Nível 2</h3>
+        <ul class="list">
+          <li>Relatórios gerenciais internos (dados parcialmente mascarados).</li>
+          <li>Planos e cronogramas de inspeções.</li>
+          <li>Dashboards operacionais.</li>
+        </ul>
+        <p style="margin-top:14px"><a class="btn" href="/pesquisas">Acesso a Pesquisas</a></p>
+      {% else %}
+        <h3>Visão Nível 3</h3>
+        <ul class="list">
+          <li>Acesso integral a relatórios e inventários sensíveis.</li>
+          <li>Protocolos, auditorias e cadeia de custódia.</li>
+          <li>Planejamento estratégico e análises de risco.</li>
+        </ul>
+        <p style="margin-top:14px"><a class="btn" href="/pesquisas">Acesso a Pesquisas</a></p>
+      {% endif %}
+    </div>
+  </div>
+</body>
+</html>

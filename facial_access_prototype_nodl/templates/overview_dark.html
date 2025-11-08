@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Overview • {{ level_label }}</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg-primary:#1a1a2e;--bg-secondary:#16213e;--card-bg:#0f3460;--text-color-light:#e0e0e0;--text-color-medium:#b0b0b0;--accent-green:#00e676;--accent-blue:#00b0ff;--border-color:#0d284a;--shadow-color:rgba(0,0,0,.4);--font-sans:'Inter',sans-serif}
+*{box-sizing:border-box}body{font-family:var(--font-sans);background:var(--bg-primary);color:var(--text-color-light);margin:0;padding:30px;min-height:100vh;display:flex;justify-content:center;align-items:flex-start}
+.container{width:100%;max-width:950px;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;box-shadow:0 15px 30px var(--shadow-color);overflow:hidden}
+.header{background:rgba(15,52,96,.6);padding:25px 40px;border-bottom:1px solid var(--border-color);display:flex;justify-content:space-between;align-items:center}
+.badge{display:inline-block;background:#003b5c;color:#9cd6ff;border:1px solid #0d4e7a;border-radius:999px;padding:5px 10px;font-size:.85em;margin-left:10px}
+.content{padding:28px}
+.section{background:var(--card-bg);border:1px solid var(--border-color);border-radius:12px;padding:20px;margin-bottom:18px}
+ul{margin:8px 0 0 18px;color:var(--text-color-medium)}
+.btn{display:inline-block;background:var(--accent-blue);color:#001018;text-decoration:none;padding:10px 14px;border-radius:10px;font-weight:600}
+.btn:hover{filter:brightness(1.12)}
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>BioSafe • Ministério do Meio Ambiente</h1>
+      <div>
+        <span class="badge">{{ level_label }}</span>
+        <a href="/" class="btn" style="background:#00e676;color:#00331f;margin-left:10px">Sair</a>
+      </div>
+    </div>
+    <div style="width:100%"><img src="/static/img/mma_banner.png" alt="MMA" style="display:block;width:100%"></div>
+    <div class="content">
+      <div class="section">
+        <h2>Para que serve o BioSafe?</h2>
+        <p>O BioSafe é um protótipo de <strong>controle de acesso biométrico</strong> e <strong>consulta segura</strong> de informações sensíveis relacionadas a substâncias, patógenos e temas de pesquisa sob tutela do Ministério do Meio Ambiente.</p>
+        <ul>
+          <li><strong>Autenticação facial</strong> em tempo real (webcam) com <em>LBPH</em>.</li>
+          <li><strong>Segregação por nível</strong>: N1 (Geral), N2 (Diretoria) e N3 (Ministro) fileciteturn2file6.</li>
+          <li><strong>Pós-login</strong> guiado: visão geral (esta tela) → “Acesso a Pesquisas” (N2/N3) → relatórios simulados.</li>
+          <li><strong>Auditoria</strong> de tentativas (back-end). Nenhum log é exibido na tela do usuário.</li>
+        </ul>
+      </div>
+      <div class="section">
+        <h2>Como funciona</h2>
+        <ul>
+          <li>Você se autentica por reconhecimento facial.</li>
+          <li>Com base no seu nível, liberamos o acesso a conteúdos apropriados.</li>
+          <li>Níveis 2 e 3 podem consultar a seção <em>Acesso a Pesquisas</em> com 10 relatórios simulados.</li>
+        </ul>
+        {% if level >= 2 %}
+          <p style="margin-top:10px"><a class="btn" href="/pesquisas">Acesso a Pesquisas</a></p>
+        {% else %}
+          <p style="margin-top:10px;color:#9bb7ff">Para acessar as pesquisas, é necessário nível 2 ou superior.</p>
+        {% endif %}
+      </div>
+      <div class="section">
+        <h2>Contexto do Projeto (APS)</h2>
+        <p>Este sistema atende ao tema “<em>Desenvolvimento de um Sistema de Identificação e Autenticação Biométrica</em>” e simula a proteção de um cofre de segurança máxima com dados de alto risco, exigindo autenticação e controle por níveis de acesso fileciteturn2file4.</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
