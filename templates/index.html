@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Validação facial • BioSafe</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg-primary:#1a1a2e;--bg-secondary:#16213e;--card-bg:#0f3460;--text-color-light:#e0e0e0;--accent-blue:#00b0ff;--border-color:#0d284a;--accent-green:#00e676}
+*{box-sizing:border-box}body{font-family:'Inter',sans-serif;background:var(--bg-primary);color:var(--text-color-light);margin:0;padding:30px;min-height:100vh;display:flex;justify-content:center;align-items:flex-start}
+.container{width:100%;max-width:950px;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;box-shadow:0 15px 30px rgba(0,0,0,.4);overflow:hidden}
+.header{background:rgba(15,52,96,.6);padding:25px 40px;border-bottom:1px solid var(--border-color);display:flex;justify-content:space-between;align-items:center}
+.card{background:var(--card-bg);border:1px solid var(--border-color);border-radius:12px;padding:24px;margin:24px;position:relative}
+#video{width:100%;border-radius:12px;background:#000}
+#overlay{position:absolute;left:24px;top:24px; pointer-events:none}
+.controls{display:flex;gap:12px;align-items:center;margin-top:10px}
+.btn{background:var(--accent-blue);color:#001018;border:none;padding:10px 14px;border-radius:10px;font-weight:600}
+.btn:hover{filter:brightness(1.1)} .status{font-size:.9em}
+.result{margin-top:14px}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>Validação facial • BioSafe</h1>
+    <a href="/" style="color:#00e676;text-decoration:none;font-weight:600">← Início</a>
+  </div>
+  <div class="card">
+    <video id="video" autoplay playsinline></video>
+    <canvas id="overlay"></canvas>
+    <div class="controls">
+      <button id="btn-capture" class="btn">Capturar e verificar</button>
+      <span id="status" class="status"></span>
+    </div>
+    <div id="result" class="result"></div>
+    <input type="hidden" id="authLevel" value="0">
+    <canvas id="canvas" style="display:none"></canvas>
+  </div>
+</div>
+
+<script>
+const video=document.getElementById('video');
+const overlay=document.getElementById('overlay');
+const canvas=document.getElementById('canvas');
+const btn=document.getElementById('btn-capture');
+const statusEl=document.getElementById('status');
+const resultEl=document.getElementById('result');
+const authLevelEl=document.getElementById('authLevel');
+const DISPLAY_THRESHOLD = {{ threshold|default(70) }};
+
+async function initCam(){
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({video:{width:640,height:480}});
+    video.srcObject=stream;
+    await video.play();
+    await new Promise(res=>{ if(video.readyState>=2) return res(); video.onloadeddata=()=>res(); });
+    overlay.width=video.clientWidth; overlay.height=video.clientHeight;
+    drawGuideBox();
+  }catch(e){ statusEl.textContent="Erro ao acessar a câmera: "+e.message; }
+}
+function drawGuideBox(){
+  const ctx=overlay.getContext('2d');
+  ctx.clearRect(0,0,overlay.width,overlay.height);
+  const gw=Math.floor(overlay.width*0.45);
+  const gh=Math.floor(overlay.height*0.6);
+  const gx=Math.floor((overlay.width-gw)/2);
+  const gy=Math.floor((overlay.height-gh)/2);
+  ctx.strokeStyle='#00e676'; ctx.lineWidth=3; ctx.globalAlpha=0.5;
+  ctx.strokeRect(gx,gy,gw,gh);
+  ctx.globalAlpha=1;
+}
+function drawDetectedBox(bbox){
+  if(!bbox) return;
+  const [x,y,w,h]=bbox;
+  const vw=video.videoWidth||640, vh=video.videoHeight||480;
+  const scaleX=overlay.width/vw, scaleY=overlay.height/vh;
+  const ctx=overlay.getContext('2d');
+  drawGuideBox();
+  ctx.strokeStyle='#00ff88'; ctx.lineWidth=4; ctx.globalAlpha=0.9;
+  ctx.strokeRect(x*scaleX, y*scaleY, w*scaleX, h*scaleY);
+  ctx.globalAlpha=1;
+}
+initCam();
+
+async function fetchWithTimeout(url,options={},ms=15000){
+  const c=new AbortController(); const t=setTimeout(()=>c.abort(),ms);
+  try{return await fetch(url,{...options,signal:c.signal});}finally{clearTimeout(t);}
+}
+
+btn.addEventListener('click', async ()=>{
+  if(!video||!video.srcObject){ statusEl.textContent="Câmera não inicializada."; return; }
+  btn.disabled=true; statusEl.textContent="Verificando..."; resultEl.innerHTML="";
+  canvas.width=video.videoWidth||640; canvas.height=video.videoHeight||480;
+  const ctx=canvas.getContext('2d'); ctx.drawImage(video,0,0,canvas.width,canvas.height);
+  const dataURL=canvas.toDataURL('image/jpeg',0.9);
+  try{
+    const res=await fetchWithTimeout('/api/verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image_b64:dataURL})});
+    if(!res.ok){ throw new Error('HTTP '+res.status); }
+    const j=await res.json(); statusEl.textContent=""; drawDetectedBox(j.bbox);
+    if(j.ok && j.match){
+      authLevelEl.value=j.level;
+      resultEl.innerHTML=`<div style="background:#0a2; padding:10px 12px; border-radius:10px; color:#eafff2">
+        Acesso concedido a <b>${j.name}</b> • ${j.level_label}. Redirecionando…</div>`;
+      setTimeout(()=>{ window.location.href = j.redirect || '/overview'; }, 800);
+    }else{
+      resultEl.innerHTML=`<div style="background:#7a4; padding:12px 14px; border-radius:10px">Acesso negado: ${j.reason||'Sem correspondência'}</div>`;
+    }
+  }catch(e){ statusEl.textContent=""; resultEl.innerHTML=`<div style="background:#7a4; padding:12px 14px; border-radius:10px">Erro na verificação.</div>`; }
+  finally{ btn.disabled=false; }
+});
+</script>
+</body>
+</html>

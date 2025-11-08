@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cadastro • BioSafe</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg-primary:#1a1a2e;--bg-secondary:#16213e;--card-bg:#0f3460;--text-color-light:#e0e0e0;--text-color-medium:#b0b0b0;--accent-green:#00e676;--accent-blue:#00b0ff;--border-color:#0d284a;--shadow-color:rgba(0,0,0,.4);--font-sans:'Inter',sans-serif}
+*{box-sizing:border-box}body{font-family:var(--font-sans);background:var(--bg-primary);color:var(--text-color-light);margin:0;padding:30px;min-height:100vh;display:flex;justify-content:center;align-items:flex-start}
+.container{width:100%;max-width:950px;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;box-shadow:0 15px 30px var(--shadow-color);overflow:hidden}
+.header{background:rgba(15,52,96,.6);padding:25px 40px;border-bottom:1px solid var(--border-color);display:flex;justify-content:space-between;align-items:center}
+.content{padding:35px 40px}
+.card{background:var(--card-bg);border:1px solid var(--border-color);border-radius:12px;padding:24px;box-shadow:0 4px 15px rgba(0,0,0,.3)}
+label{display:block;margin:10px 0 6px;color:#b0d4ff}
+input,select{width:100%;padding:10px;border-radius:10px;border:1px solid var(--border-color);background:#0b2a4f;color:#e0e0e0}
+.btn{margin-top:14px;background:var(--accent-blue);color:#001018;border:none;padding:10px 14px;border-radius:10px;font-weight:600}
+.btn:hover{filter:brightness(1.15)}
+.video{width:100%;border-radius:12px;background:#000;margin-top:12px}
+.msg{margin-top:10px}
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="header"><h1>Cadastro • BioSafe</h1><a href="/" style="color:#00e676;text-decoration:none">← Voltar</a></div>
+    <div class="content">
+      <div class="card">
+        <form id="form-enroll">
+          <label>Nome</label>
+          <input name="name" required placeholder="Ex.: Alice Moreira">
+          <label>Nível</label>
+          <select name="level">
+            <option value="1">1 • Nível 1 (Geral)</option>
+            <option value="2">2 • Nível 2 (Diretoria)</option>
+            <option value="3">3 • Nível 3 (Ministro)</option>
+          </select>
+          <label>Foto (webcam)</label>
+          <video id="video" autoplay playsinline class="video"></video>
+          <button class="btn" type="button" id="btn-capture">Capturar e cadastrar</button>
+        </form>
+        <div id="msg" class="msg"></div>
+        <canvas id="canvas" style="display:none"></canvas>
+      </div>
+    </div>
+  </div>
+<script>
+const v=document.getElementById('video'), c=document.getElementById('canvas'), b=document.getElementById('btn-capture'), m=document.getElementById('msg');
+navigator.mediaDevices.getUserMedia({video:{width:640,height:480}}).then(s=>v.srcObject=s);
+b.onclick=async ()=>{
+  const f=document.getElementById('form-enroll'); const name=f.name.value.trim(); const level=parseInt(f.level.value||'1',10);
+  if(!name){m.textContent='Informe o nome.';return;}
+  c.width=v.videoWidth||640; c.height=v.videoHeight||480; c.getContext('2d').drawImage(v,0,0,c.width,c.height);
+  const dataURL=c.toDataURL('image/jpeg',0.9);
+  b.disabled=true; m.textContent='Enviando...';
+  try{
+    const r=await fetch('/api/enroll',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,level,image_b64:dataURL})});
+    const j=await r.json(); b.disabled=false;
+    m.textContent=j.ok?'Cadastro realizado.':'Falha no cadastro.';
+  }catch(e){b.disabled=false;m.textContent='Erro na rede.'}
+}
+</script>
+</body>
+</html>

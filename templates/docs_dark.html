@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Documentos • {{ level_label }}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg-primary:#1a1a2e; --bg-secondary:#16213e; --card-bg:#0f3460; --text-color-light:#e0e0e0; --text-color-medium:#b0b0b0; --accent-green:#00e676; --accent-blue:#00b0ff; --border-color:#0d284a; --shadow-color:rgba(0,0,0,.4); --font-mono:'Roboto Mono',monospace; --font-sans:'Inter',sans-serif; --red-danger:#ef5350; --yellow-warning:#ffca28; }
+    *{box-sizing:border-box}
+    body{font-family:var(--font-sans);background-color:var(--bg-primary);color:var(--text-color-light);margin:0;padding:30px;min-height:100vh;display:flex;justify-content:center;align-items:flex-start;line-height:1.6;}
+    .container{width:100%;max-width:950px;background:var(--bg-secondary);border-radius:12px;box-shadow:0 15px 30px var(--shadow-color);overflow:hidden;border:1px solid var(--border-color);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);}
+    .header{background:rgba(15,52,96,.6);padding:25px 40px;border-bottom:1px solid var(--border-color);display:flex;justify-content:space-between;align-items:center;position:relative;overflow:hidden}
+    .header h1{margin:0;font-size:1.8em;color:var(--text-color-light);font-weight:700;display:flex;align-items:center}
+    .header h1 svg{margin-right:12px;color:var(--accent-blue)}
+    .back-link{text-decoration:none;color:var(--accent-green);font-weight:500;display:flex;align-items:center;transition:color .3s ease, transform .3s ease;font-family:var(--font-mono);font-size:.9em}
+    .back-link:hover{color:#39ff14;transform:translateX(-5px)}
+    .content{padding:35px 40px;display:grid;grid-template-columns:1fr;gap:30px}
+    .section{background:var(--card-bg);border-radius:10px;padding:30px;box-shadow:0 4px 15px rgba(0,0,0,.3);border:1px solid var(--border-color);position:relative;overflow:hidden}
+    .section h2{margin:0 0 25px;font-size:1.5em;color:var(--accent-blue);border-bottom:2px solid var(--accent-blue);padding-bottom:12px;font-weight:600;position:relative;z-index:1}
+    .detail-item{display:flex;align-items:baseline;margin-bottom:15px;position:relative;z-index:1}
+    .detail-item strong{width:140px;flex-shrink:0;color:var(--text-color-medium);font-weight:500;font-family:var(--font-mono);font-size:.95em}
+    .detail-item span{flex-grow:1;font-family:var(--font-mono)}
+    .note{font-size:.9em;color:var(--text-color-medium);margin-top:25px;padding-top:15px;border-top:1px dashed var(--border-color);position:relative;z-index:1}
+    .project-table{width:100%;border-collapse:collapse;margin-top:25px;font-size:.9em;position:relative;z-index:1}
+    .project-table th,.project-table td{text-align:left;padding:15px 18px;border-bottom:1px solid var(--border-color)}
+    .project-table th{background:rgba(0,176,255,.1);color:var(--accent-blue);font-weight:600;text-transform:uppercase;font-size:.8em;letter-spacing:.05em}
+    .project-table td:first-child{color:var(--accent-green)}
+    .risk-alto{color:#ef5350;font-weight:500}.risk-medio{color:#ffca28;font-weight:500}.risk-baixo{color:var(--accent-green);font-weight:500}
+    .document-list{list-style:none;padding:0;margin-top:20px;position:relative;z-index:1}
+    .document-list li{margin-bottom:12px;display:flex;align-items:center;font-family:var(--font-mono)}
+    .document-list li svg{margin-right:12px;color:var(--accent-green)}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+          <polyline points="10 9 9 9 8 9"></polyline>
+        </svg>
+        Documentos • {{ level_label }}
+      </h1>
+      <a href="/home" class="back-link">← Voltar ao Home</a>
+    </div>
+    <div class="content">
+      {% if warn %}
+      <div class="section" style="background:#3a2f00;border-color:#7a5f00;color:#ffd666">
+        {{ warn }}
+      </div>
+      {% endif %}
+      <div class="section">
+        <h2>Identificação</h2>
+        <div class="detail-item"><strong>Nome:</strong><span>{{ record.nome }}</span></div>
+        <div class="detail-item"><strong>CPF:</strong><span>{{ record.cpf }}</span></div>
+        <div class="detail-item"><strong>E-mail:</strong><span>{{ record.email }}</span></div>
+        <div class="detail-item"><strong>Cargo:</strong><span>{{ record.cargo }}</span></div>
+        <div class="detail-item"><strong>Setor:</strong><span>{{ record.setor }}</span></div>
+      </div>
+      <div class="section">
+        <h2>Chaves e Localização</h2>
+        <div class="detail-item"><strong>Chave API:</strong><span>{{ record.chaves_api }}</span></div>
+        <div class="detail-item"><strong>Coordenadas:</strong><span>{{ record.coordenadas }}</span></div>
+        {% if level == 1 %}
+          <p class="note">• Dados sensíveis mascarados para Nível 1</p>
+        {% elif level == 2 %}
+          <p class="note">• Alguns dados parcialmente mascarados para Nível 2</p>
+        {% else %}
+          <p class="note">• Acesso total (Nível 3)</p>
+        {% endif %}
+      </div>
+      <div class="section">
+        <h2>Projeto</h2>
+        <table class="project-table">
+          <thead><tr><th>ID</th><th>Descrição</th><th>Local</th><th>Risco</th></tr></thead>
+          <tbody>
+            {% for a in record.amostras %}
+            <tr>
+              <td>{{ a.id }}</td>
+              <td>{{ a.descricao }}</td>
+              <td>{{ a.local }}</td>
+              <td class="{% if a.risco=='ALTO' %}risk-alto{% elif a.risco=='MÉDIO' %}risk-medio{% else %}risk-baixo{% endif %}">{{ a.risco }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="section">
+        <h2>Documentos Sigilosos</h2>
+        <ul class="document-list">
+          {% for d in record.documentos_sigilosos %}
+          <li>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            {% if d.link %}
+              <a style="color:#00b0ff" href="{{ d.link }}"> {{ d.titulo }} </a>
+            {% else %}
+              <span>{{ d.titulo }}</span>{% if level==1 %}<span style="margin-left:8px;color:#9ca3af;font-size:.85em">(acesso restrito – eleve seu nível)</span>{% endif %}
+            {% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

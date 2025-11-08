@@ -1,0 +1,38 @@
+
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}MMA • Acesso{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b1220;--panel:#0f1628;--ink:#e5e7eb;--muted:#a1a1aa;--blue:#0ea5e9;--green:#22c55e;--br:#1f2937}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#08111f 0%,#0b1220 100%);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto}
+.container{max-width:1100px;margin:0 auto;padding:22px}
+.card{background:rgba(15,22,40,.9);border:1px solid var(--br);border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.35);padding:18px}
+h1,h2,h3{margin:0 0 10px}
+.btn{display:inline-block;padding:10px 14px;border-radius:12px;background:var(--blue);color:#001018;text-decoration:none;font-weight:650}
+.btn.alt{background:#0b2a4f;color:#dbeafe;border:1px solid #1e3a8a}
+.header{display:flex;gap:12px;align-items:center;margin-bottom:14px}
+.header img{height:36px;border-radius:6px}
+.grid{display:grid;gap:14px;grid-template-columns:1fr 1fr}
+@media (max-width:840px){.grid{grid-template-columns:1fr}}
+.video-wrap{position:relative;border:1px dashed #22c55e;border-radius:12px;overflow:hidden}
+.video-wrap .guide{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:60%;height:70%;border:2px solid #22c55e;border-radius:10px;pointer-events:none}
+.table{width:100%;border-collapse:collapse}
+.table th,.table td{border-bottom:1px solid var(--br);padding:10px;text-align:left;color:var(--ink)}
+small{color:var(--muted)}
+</style>
+{% block head %}{% endblock %}
+</head><body>
+<div class="container">
+  <div class="header">
+    <img src="/static/img/mma_logo.png" alt="MMA"><div>
+      <div style="font-weight:800">Ministerio do Meio Ambiente</div>
+      <small>Portal de Acesso, Pesquisas e Vigilancia</small>
+    </div>
+    <div style="margin-left:auto">
+      <a href="/logout" class="btn alt">Sair</a>
+    </div>
+  </div>
+  {% block content %}{% endblock %}
+</div></body></html>

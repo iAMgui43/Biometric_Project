@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BioSafe • Ministério do Meio Ambiente</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg-primary:#1a1a2e;--bg-secondary:#16213e;--card-bg:#0f3460;--text-color-light:#e0e0e0;--text-color-medium:#b0b0b0;--accent-green:#00e676;--accent-blue:#00b0ff;--border-color:#0d284a;--shadow-color:rgba(0,0,0,.4);--font-mono:'Roboto Mono',monospace;--font-sans:'Inter',sans-serif}
+*{box-sizing:border-box}
+body{font-family:var(--font-sans);background:var(--bg-primary);color:var(--text-color-light);margin:0;padding:30px;min-height:100vh;display:flex;justify-content:center;align-items:flex-start}
+.container{width:100%;max-width:950px;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;box-shadow:0 15px 30px var(--shadow-color);overflow:hidden}
+.header{background:rgba(15,52,96,.6);padding:25px 40px;border-bottom:1px solid var(--border-color);display:flex;justify-content:space-between;align-items:center;position:relative;overflow:hidden}
+.header::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle at center, rgba(0,255,255,.1) 0%, transparent 70%);opacity:.1;animation:pulse-glow 15s infinite ease-in-out}
+@keyframes pulse-glow{0%{transform:scale(1);opacity:.1}50%{transform:scale(1.1);opacity:.2}100%{transform:scale(1);opacity:.1}}
+.header h1{margin:0;font-size:1.8em;font-weight:700;display:flex;align-items:center}
+.header h1 svg{margin-right:12px;color:var(--accent-blue)}
+.content{padding:35px 40px}
+.grid{display:grid;grid-template-columns:1fr;gap:20px}
+@media(min-width:720px){.grid{grid-template-columns:repeat(2,1fr)}}
+.card{background:var(--card-bg);border:1px solid var(--border-color);border-radius:12px;padding:24px;box-shadow:0 4px 15px rgba(0,0,0,.3);display:flex;flex-direction:column;justify-content:space-between}
+.card h2{margin:0 0 10px;color:var(--accent-blue)}
+.card p{margin:0 0 16px;color:var(--text-color-medium)}
+.btn{display:inline-block;background:var(--accent-blue);color:#001018;text-decoration:none;padding:10px 14px;border-radius:10px;font-weight:600}
+.btn:hover{filter:brightness(1.15)}
+.note{margin-top:20px;color:#9bb7ff}
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="header"><img src="/static/img/mma_logo.png" alt="MMA" style="height:38px;border-radius:6px;margin-right:12px">
+      <h1>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-shield">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+        </svg>
+        BioSafe • Ministério do Meio Ambiente
+      </h1>
+      <a href="/validate" class="btn" style="background:#00e676;color:#00331f;">Validar acesso</a>
+    </div>
+    <div class="content">
+      <div class="grid">
+        <div class="card">
+          <div>
+            <h2>Validação facial</h2>
+            <p>Autentique-se com a câmera para acessar o sistema conforme seu nível.</p>
+          </div>
+          <div><a class="btn" href="/validate">Ir para validação</a></div>
+        </div>
+        <div class="card">
+          <div>
+            <h2>Cadastro</h2>
+            <p>Cadastre um novo usuário com foto e nível de acesso (1, 2 ou 3).</p>
+          </div>
+          <div><a class="btn" href="/enroll">Ir para cadastro</a></div>
+        </div>
+      </div>
+      <div class="note">Acesso auditado e segregado: N1 (Geral) • N2 (Diretoria) • N3 (Ministro).</div>
+    </div>
+  </div>
+</body>
+</html>
