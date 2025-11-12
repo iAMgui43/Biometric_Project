@@ -5,7 +5,7 @@
 <title>Gate de Cadastro • BioSafe</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg-primary:#1a1a2e;--bg-secondary:#16213e;--card-bg:#0f3460;--text-color-light:#e0e0e0;--text-color-medium:#b00b0b;--accent-green:#00e676;--accent-blue:#00b0ff;--border-color:#0d284a;--shadow-color:rgba(0,0,0,.4);--font-sans:'Inter',sans-serif}
+:root{--bg-primary:#1a1a2e;--bg-secondary:#16213e;--card-bg:#0f3460;--text-color-light:#e0e0e0;--text-color-medium:#9bb7ff;--accent-green:#00e676;--accent-blue:#00b0ff;--border-color:#0d284a;--shadow-color:rgba(0,0,0,.4);--warn:#ffc107;--error:#ef4444;--font-sans:'Inter',sans-serif}
 *{box-sizing:border-box}body{font-family:var(--font-sans);background:var(--bg-primary);color:var(--text-color-light);margin:0;padding:30px;min-height:100vh;display:flex;justify-content:center;align-items:flex-start}
 .container{width:100%;max-width:980px;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;box-shadow:0 15px 30px var(--shadow-color);overflow:hidden}
 .header{background:rgba(15,52,96,.6);padding:25px 40px;border-bottom:1px solid var(--border-color);display:flex;justify-content:space-between;align-items:center}
@@ -13,11 +13,17 @@
 .card{background:var(--card-bg);border:1px solid var(--border-color);border-radius:12px;padding:18px;position:relative}
 .video{width:100%;border-radius:12px;background:#000}
 #overlay{position:absolute;left:18px;top:18px;pointer-events:none}
-.btn{display:inline-block;background:var(--accent-blue);color:#001018;text-decoration:none;padding:10px 14px;border-radius:10px;font-weight:600}
+.btn{display:inline-block;background:var(--accent-blue);color:#001018;text-decoration:none;padding:10px 14px;border-radius:10px;font-weight:600;cursor:pointer}
+.btn[disabled]{opacity:.6;cursor:not-allowed}
 .btn:hover{filter:brightness(1.12)}
 label{display:block;margin:10px 0 6px;color:#b0d4ff}
 input{width:100%;padding:10px;border-radius:10px;border:1px solid var(--border-color);background:#0b2a4f;color:#e0e0e0}
-.msg{margin-top:10px;color:#9bb7ff}
+.msg{margin-top:10px;color:var(--text-color-medium)}
+.step{display:flex;gap:8px;align-items:center;margin-top:8px}
+.step .dot{width:10px;height:10px;border-radius:50%;background:#555}
+.step.active .dot{background:var(--accent-green)}
+.step.warn .dot{background:var(--warn)}
+.step.err .dot{background:var(--error)}
 </style>
 </head>
 <body>
@@ -31,10 +37,15 @@ input{width:100%;padding:10px;border-radius:10px;border:1px solid var(--border-c
       <h2>Validar rosto (N3)</h2>
       <video id="video" autoplay playsinline class="video"></video>
       <canvas id="overlay"></canvas>
-      <div style="margin-top:10px">
+      <div class="step" id="s1"><span class="dot"></span> 1) Vivacidade (siga as instruções)</div>
+      <div class="step" id="s2"><span class="dot"></span> 2) Centralize e mantenha imóvel</div>
+      <div class="step" id="s3"><span class="dot"></span> 3) Verificando nível…</div>
+      <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
         <button id="btn-face" class="btn">Verificar Nível 3</button>
         <span id="status" class="msg"></span>
+        <span id="hint" class="msg"></span>
       </div>
+      <div id="faceMsg" class="msg"></div>
       <canvas id="canvas" style="display:none"></canvas>
     </div>
     <div class="card">
@@ -55,8 +66,16 @@ const overlay=document.getElementById('overlay');
 const canvas=document.getElementById('canvas');
 const btnFace=document.getElementById('btn-face');
 const statusEl=document.getElementById('status');
-const btnAdmin=document.getElementById('btn-admin');
+const hint=document.getElementById('hint');
 const msg=document.getElementById('msg');
+const faceMsg=document.getElementById('faceMsg');
+const s1=document.getElementById('s1');
+const s2=document.getElementById('s2');
+const s3=document.getElementById('s3');
+
+function setStep(el,cls){ [s1,s2,s3].forEach(x=>x.className='step'); if(el) el.classList.add(cls); }
+function setStatus(t){ statusEl.textContent=t||''; }
+function setHint(t){ hint.textContent=t||''; }
 
 async function initCam(){
   try{
@@ -65,7 +84,7 @@ async function initCam(){
     await new Promise(res=>{ if(video.readyState>=2) return res(); video.onloadeddata=()=>res(); });
     overlay.width=video.clientWidth; overlay.height=video.clientHeight;
     drawGuide();
-  }catch(e){ statusEl.textContent="Erro ao acessar a câmera: "+e.message; }
+  }catch(e){ setStatus("Erro ao acessar a câmera: "+e.message); }
 }
 function drawGuide(){
   const ctx=overlay.getContext('2d'); ctx.clearRect(0,0,overlay.width,overlay.height);
@@ -81,36 +100,82 @@ function drawDetected(b){
   ctx.strokeStyle='#00ff88'; ctx.lineWidth=4; ctx.globalAlpha=0.9;
   ctx.strokeRect(x*sx,y*sy,w*sx,h*sy); ctx.globalAlpha=1;
 }
+function grabFrame(){
+  canvas.width=video.videoWidth||640; canvas.height=video.videoHeight||480;
+  const ctx=canvas.getContext('2d'); ctx.drawImage(video,0,0,canvas.width,canvas.height);
+  return canvas.toDataURL('image/jpeg',0.9);
+}
 async function fetchWithTimeout(url,options={},ms=15000){
   const c=new AbortController(), t=setTimeout(()=>c.abort(),ms);
   try{ return await fetch(url,{...options,signal:c.signal,credentials:'same-origin'}); } finally { clearTimeout(t); }
 }
+
+async function runLiveness(){
+  setStep(s1,'active'); setStatus('Iniciando vivacidade…'); setHint('Siga as instruções na tela');
+  const ch = await fetchWithTimeout('/api/liveness_challenge',{method:'POST'});
+  const jch = await ch.json();
+  if(!jch.ok) throw new Error('Falha no desafio de vivacidade');
+  setHint(`Faça: ${jch.actions.join(' + ')}`);
+
+  const frames=[];
+  for(let i=0;i<10;i++){
+    frames.push(grabFrame());
+    await new Promise(r=>setTimeout(r,120));
+  }
+  const comp = await fetchWithTimeout('/api/liveness_complete',{
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({nonce:jch.nonce, frames})
+  });
+  const jco = await comp.json();
+  if(!jco.ok){ throw new Error(jco.error || 'Vivacidade reprovada'); }
+  return true;
+}
+
+async function verifyN3(){
+  setStep(s2,'active'); setStatus('Centralize e mantenha imóvel…'); setHint('Capturando em 1s');
+  await new Promise(r=>setTimeout(r,700));
+  const dataURL=grabFrame();
+
+  setStep(s3,'active'); setStatus('Verificando nível…'); setHint('Aguarde');
+  const r=await fetchWithTimeout('/api/verify_enroll',{
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({image_b64:dataURL})
+  });
+  const j=await r.json(); setStatus(''); drawDetected(j.bbox);
+  if(j.ok && j.match && j.is_n3){
+    window.location.href = j.redirect || '/enroll-form';
+  }else if(j.ok && j.match && !j.is_n3){
+    faceMsg.textContent = 'Reconhecido, porém não é N3. Faça login como Admin para prosseguir.';
+  }else{
+    faceMsg.textContent = j.reason || j.error || 'Não reconhecido. Use Admin.';
+  }
+}
+
 btnFace.onclick = async ()=>{
-  canvas.width=video.videoWidth||640; canvas.height=video.videoHeight||480;
-  const ctx=canvas.getContext('2d'); ctx.drawImage(video,0,0,canvas.width,canvas.height);
-  const dataURL=canvas.toDataURL('image/jpeg',0.9);
-  statusEl.textContent="Verificando rosto...";
+  if(!video||!video.srcObject){ setStatus("Câmera não inicializada."); return; }
+  btnFace.disabled=true; faceMsg.textContent='';
   try{
-    const r=await fetchWithTimeout('/api/verify_enroll',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image_b64:dataURL})});
-    const j=await r.json(); statusEl.textContent=""; drawDetected(j.bbox);
-    if(j.ok && j.match && j.is_n3){
-      window.location.href = j.redirect || '/enroll';
-    }else{
-      msg.textContent = 'Acesso via rosto não liberado. Use usuário e senha de Admin.';
-    }
-  }catch(e){ statusEl.textContent="Falha na verificação." }
+    await runLiveness();
+    await verifyN3();
+  }catch(e){
+    setStep(s1,'err'); faceMsg.textContent = 'Falha: '+(e.message||e);
+  }finally{
+    btnFace.disabled=false;
+  }
 };
-btnAdmin.onclick = async ()=>{
+
+document.getElementById('btn-admin').onclick = async ()=>{
   const user=document.getElementById('adminUser').value.trim();
   const pw=document.getElementById('adminPass').value.trim();
   msg.textContent="Validando credenciais...";
   try{
     const r=await fetch('/admin-login',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({user, password:pw})});
     const j=await r.json();
-    if(j.ok){ window.location.href=j.redirect || '/enroll'; }
+    if(j.ok){ window.location.href=j.redirect || '/enroll-form'; }
     else{ msg.textContent=j.error||'Falha no login.'; }
   }catch(e){ msg.textContent='Erro na rede.'; }
 };
+
 initCam();
 </script>
 </body>
