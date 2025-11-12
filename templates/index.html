@@ -5,17 +5,25 @@
 <title>Validação facial • BioSafe</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg-primary:#1a1a2e;--bg-secondary:#16213e;--card-bg:#0f3460;--text-color-light:#e0e0e0;--accent-blue:#00b0ff;--border-color:#0d284a;--accent-green:#00e676}
+:root{--bg-primary:#1a1a2e;--bg-secondary:#16213e;--card-bg:#0f3460;--text-color-light:#e0e0e0;--accent-blue:#00b0ff;--border-color:#0d284a;--accent-green:#00e676;--warn:#ffc107;--error:#ef4444}
 *{box-sizing:border-box}body{font-family:'Inter',sans-serif;background:var(--bg-primary);color:var(--text-color-light);margin:0;padding:30px;min-height:100vh;display:flex;justify-content:center;align-items:flex-start}
 .container{width:100%;max-width:950px;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:12px;box-shadow:0 15px 30px rgba(0,0,0,.4);overflow:hidden}
 .header{background:rgba(15,52,96,.6);padding:25px 40px;border-bottom:1px solid var(--border-color);display:flex;justify-content:space-between;align-items:center}
 .card{background:var(--card-bg);border:1px solid var(--border-color);border-radius:12px;padding:24px;margin:24px;position:relative}
 #video{width:100%;border-radius:12px;background:#000}
 #overlay{position:absolute;left:24px;top:24px; pointer-events:none}
-.controls{display:flex;gap:12px;align-items:center;margin-top:10px}
-.btn{background:var(--accent-blue);color:#001018;border:none;padding:10px 14px;border-radius:10px;font-weight:600}
-.btn:hover{filter:brightness(1.1)} .status{font-size:.9em}
+.controls{display:flex;gap:12px;align-items:center;margin-top:10px;flex-wrap:wrap}
+.btn{background:var(--accent-blue);color:#001018;border:none;padding:10px 14px;border-radius:10px;font-weight:600;cursor:pointer}
+.btn[disabled]{opacity:.6;cursor:not-allowed}
+.status{font-size:.9em}
 .result{margin-top:14px}
+.badge{display:inline-block;padding:4px 8px;border-radius:999px;background:#064e3b;color:#a7f3d0;font-size:.8em}
+.step{display:flex;gap:8px;align-items:center}
+.step .dot{width:10px;height:10px;border-radius:50%;background:#555}
+.step.active .dot{background:var(--accent-green)}
+.step.warn .dot{background:var(--warn)}
+.step.err .dot{background:var(--error)}
+.helper{font-size:.9em;color:#b6c7ff;margin-top:6px}
 </style>
 </head>
 <body>
@@ -27,9 +35,18 @@
   <div class="card">
     <video id="video" autoplay playsinline></video>
     <canvas id="overlay"></canvas>
+
+    <!-- Passo-a-passo de liveness + verificação -->
+    <div style="margin-top:12px;display:grid;gap:6px">
+      <div class="step" id="s1"><span class="dot"></span><span>1) Desafio de vivacidade (siga as instruções na tela)</span></div>
+      <div class="step" id="s2"><span class="dot"></span><span>2) Mantenha o rosto centralizado e imóvel para captura</span></div>
+      <div class="step" id="s3"><span class="dot"></span><span>3) Verificando identidade…</span></div>
+    </div>
+
     <div class="controls">
-      <button id="btn-capture" class="btn">Capturar e verificar</button>
+      <button id="btn-run" class="btn">Validar agora</button>
       <span id="status" class="status"></span>
+      <span id="hint" class="helper"></span>
     </div>
     <div id="result" class="result"></div>
     <input type="hidden" id="authLevel" value="0">
@@ -41,11 +58,21 @@
 const video=document.getElementById('video');
 const overlay=document.getElementById('overlay');
 const canvas=document.getElementById('canvas');
-const btn=document.getElementById('btn-capture');
+const btn=document.getElementById('btn-run');
 const statusEl=document.getElementById('status');
+const hintEl=document.getElementById('hint');
 const resultEl=document.getElementById('result');
-const authLevelEl=document.getElementById('authLevel');
+
+// Steps
+const s1=document.getElementById('s1');
+const s2=document.getElementById('s2');
+const s3=document.getElementById('s3');
+
 const DISPLAY_THRESHOLD = {{ threshold|default(70) }};
+
+function setStep(el, cls){ [s1,s2,s3].forEach(x=>x.className='step'); if(el){ el.classList.add(cls); } }
+function setMsg(txt){ statusEl.textContent = txt||''; }
+function setHint(txt){ hintEl.textContent = txt||''; }
 
 async function initCam(){
   try{
@@ -55,7 +82,7 @@ async function initCam(){
     await new Promise(res=>{ if(video.readyState>=2) return res(); video.onloadeddata=()=>res(); });
     overlay.width=video.clientWidth; overlay.height=video.clientHeight;
     drawGuideBox();
-  }catch(e){ statusEl.textContent="Erro ao acessar a câmera: "+e.message; }
+  }catch(e){ setMsg("Erro ao acessar a câmera: "+e.message); }
 }
 function drawGuideBox(){
   const ctx=overlay.getContext('2d');
@@ -83,29 +110,77 @@ initCam();
 
 async function fetchWithTimeout(url,options={},ms=15000){
   const c=new AbortController(); const t=setTimeout(()=>c.abort(),ms);
-  try{return await fetch(url,{...options,signal:c.signal});}finally{clearTimeout(t);}
+  try{return await fetch(url,{...options,signal:c.signal,credentials:'same-origin'});}finally{clearTimeout(t);}
+}
+
+function grabFrame(){
+  canvas.width=video.videoWidth||640; canvas.height=video.videoHeight||480;
+  const ctx=canvas.getContext('2d'); ctx.drawImage(video,0,0,canvas.width,canvas.height);
+  return canvas.toDataURL('image/jpeg',0.9);
+}
+
+async function runLiveness(){
+  setStep(s1,'active'); setMsg('Iniciando desafio de vivacidade…'); setHint('Siga as instruções (piscar, virar a cabeça, sorrir, etc.)');
+  // 1) challenge
+  const ch = await fetchWithTimeout('/api/liveness_challenge',{method:'POST'});
+  const jch = await ch.json();
+  if(!jch.ok) throw new Error('Falha no desafio de vivacidade');
+  // Mostra instruções simples
+  setHint(`Faça rapidamente: ${jch.actions.join(' + ')}`);
+
+  // 2) coletar 8-10 frames em ~1.0–1.5s
+  const frames=[];
+  for(let i=0;i<10;i++){
+    frames.push(grabFrame());
+    await new Promise(r=>setTimeout(r,120));
+  }
+  // 3) complete
+  const comp = await fetchWithTimeout('/api/liveness_complete',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({nonce:jch.nonce, frames})
+  });
+  const jco = await comp.json();
+  if(!jco.ok){
+    throw new Error(jco.error || 'Vivacidade reprovada');
+  }
+  return true;
+}
+
+async function verifyAfterLiveness(){
+  setStep(s2,'active'); setMsg('Centralize e mantenha o rosto imóvel…'); setHint('Evite movimentos por 1 segundo para capturar');
+  // pequena pausa para estabilizar
+  await new Promise(r=>setTimeout(r,700));
+  const dataURL = grabFrame();
+
+  setStep(s3,'active'); setMsg('Verificando identidade…'); setHint('Aguarde.');
+  const res=await fetchWithTimeout('/api/verify',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({image_b64:dataURL})
+  });
+  const j=await res.json();
+  setMsg(''); drawDetectedBox(j.bbox);
+  if(j.ok && j.match){
+    resultEl.innerHTML=`<div class="badge">Acesso concedido</div> • <b>${j.name}</b> • ${j.level_label}. Redirecionando…`;
+    setTimeout(()=>{ window.location.href = j.redirect || '/overview'; }, 800);
+  }else{
+    resultEl.innerHTML=`<div style="background:#7a4; padding:12px 14px; border-radius:10px">Acesso negado: ${j.reason||j.error||'Sem correspondência'}</div>`;
+  }
 }
 
 btn.addEventListener('click', async ()=>{
-  if(!video||!video.srcObject){ statusEl.textContent="Câmera não inicializada."; return; }
-  btn.disabled=true; statusEl.textContent="Verificando..."; resultEl.innerHTML="";
-  canvas.width=video.videoWidth||640; canvas.height=video.videoHeight||480;
-  const ctx=canvas.getContext('2d'); ctx.drawImage(video,0,0,canvas.width,canvas.height);
-  const dataURL=canvas.toDataURL('image/jpeg',0.9);
+  if(!video||!video.srcObject){ setMsg("Câmera não inicializada."); return; }
+  btn.disabled=true; resultEl.innerHTML='';
   try{
-    const res=await fetchWithTimeout('/api/verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image_b64:dataURL})});
-    if(!res.ok){ throw new Error('HTTP '+res.status); }
-    const j=await res.json(); statusEl.textContent=""; drawDetectedBox(j.bbox);
-    if(j.ok && j.match){
-      authLevelEl.value=j.level;
-      resultEl.innerHTML=`<div style="background:#0a2; padding:10px 12px; border-radius:10px; color:#eafff2">
-        Acesso concedido a <b>${j.name}</b> • ${j.level_label}. Redirecionando…</div>`;
-      setTimeout(()=>{ window.location.href = j.redirect || '/overview'; }, 800);
-    }else{
-      resultEl.innerHTML=`<div style="background:#7a4; padding:12px 14px; border-radius:10px">Acesso negado: ${j.reason||'Sem correspondência'}</div>`;
-    }
-  }catch(e){ statusEl.textContent=""; resultEl.innerHTML=`<div style="background:#7a4; padding:12px 14px; border-radius:10px">Erro na verificação.</div>`; }
-  finally{ btn.disabled=false; }
+    await runLiveness();
+    await verifyAfterLiveness();
+  }catch(e){
+    setStep(s1,'err'); setMsg(''); 
+    resultEl.innerHTML = `<div style="background:#7a4; padding:12px 14px; border-radius:10px">Falha na vivacidade/verificação: ${e.message||e}</div>`;
+  }finally{
+    btn.disabled=false;
+  }
 });
 </script>
 </body>
